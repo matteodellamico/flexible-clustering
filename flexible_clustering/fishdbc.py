@@ -107,24 +107,49 @@ class FISHDBC:
         # data[i] and data[j], dist is the dissimilarity between them, and rd
         # is the reachability distance.
 
-        # for each data[i], _neighbor_heaps[i] contains a max-heap of
-        # the min_samples closest distances to i. Since heapq doesn't
-        # currently support max heaps, we use a min-heap with the
-        # negative values of distances
+        # for each data[i], _neighbor_heaps[i] contains a heap of
+        # (mdist, j) where the data[j] are the min_sample closest distances
+        # to i and mdist = -d(data[i], data[j]). Since heapq doesn't
+        # currently support max-heaps, we use a min-heap with the
+        # negative values of distances.
         self._neighbor_heaps = []
 
-        # decorated_d will cache the computed distances in _distance_cache.
+        # caches the distances computed to the last data item inserted
+        self._distance_cache = distance_cache = {}
+
+        # decorated_d will cache the computed distances in distance_cache.
         if not list_distance:  # d is defined to work on scalars
             def decorated_d(i, j):
-                dist = d(data[i], data[j])
-                self._distance_cache.append((i, j, dist))
-                return dist
+                assert i == len(data) - 1 # 1st argument is the new item
+                try:
+                    return distance_cache[j]
+                except KeyError:
+                    distance_cache[j] = dist = d(data[i], data[j])
+                    return dist
         if list_distance: # d is defined to work on a scalar and a list
             def decorated_d(i, js):
-                dists = d(data[i], [data[j] for j in js])
-                self._distance_cache.extend((i, j, dist)
-                                            for j, dist in zip(js, dists))
-                return dists
+                assert i == len(data) - 1 # 1st argument is the new item
+                known = []
+                unknown_j, unknown_items = [], []
+                for pos, j in enumerate(js):
+                    k = j in distance_cache
+                    known.append(k)
+                    if not k:
+                        unknown_j.append(j)
+                        unknown_items.append(k)
+                new_d = d(data[i], unknown_items)
+                for j, dist in zip(unknown_j, new_d):
+                    distance_cache[j] = dist
+                old_d = (distance_cache[j] for j, k in zip(js, known) if k)
+                new_d = iter(new_d)
+
+                res = []
+                for k in known:
+                    if k:
+                        res.append(next(old_d))
+                    else:
+                        res.append(next(new_d))
+                return res
 
         # We create the HNSW
         the_hnsw = hnsw.HNSW(decorated_d, m, ef, m0, level_mult, heuristic,
@@ -136,33 +161,43 @@ class FISHDBC:
         """Add elem to the data structure."""
         
         data = self.data
-        nh = self._neighbor_heaps
+        distance_cache = self._distance_cache
         min_samples = self.min_samples
+        nh = self._neighbor_heaps
         
         idx = len(data)
         data.append(elem)
         # let's start with min_samples values of infinity rather than
         # having to deal with heaps of less than min_samples values
-        nh.append([-np.infty] * min_samples)
+        nh.append([(-np.infty, None)] * min_samples)
         
-        self._distance_cache = distance_cache = []
+        self._distance_cache.clear()
         self._hnsw_add(idx)
-        candidate_edges = self._mst_edges
-        seen = set()
-        for i, j, dist in distance_cache:
-            assert i == idx  # i is the newly added element
-            if j in seen:  # skip elements we've seen more than once
-                continue
-            seen.add(j)
+        new_edges = set()  # (i, j, dist) triples
+        
+        for j, dist in distance_cache.items():
             mdist = -dist
-            heapq.heappushpop(nh[i], mdist)
-            heapq.heappushpop(nh[j], mdist)
-            # we'll put the new reachability distance afterwards
-            candidate_edges.append((None, i, j, dist))
+            heapq.heappushpop(nh[idx], (mdist, j))
+            new_edges.add((idx, j, dist))
 
-        # recompute reachability distance for all candidate edges
-        candidate_edges = [(max(dist, -nh[i][0], -nh[j][0]), i, j, dist)
-                           for _, i, j, dist in candidate_edges]
+            # also update j's reachability distances
+            nh_j = nh[j]
+            old_mrd = heapq.heappushpop(nh_j, (mdist, idx))[0]
+            new_mrd = nh_j[0][0]
+            if old_mrd != new_mrd:
+                # i is a new close neighbor for j and j's reachability
+                # distance changed
+                for md, k in nh_j:
+                    if k == idx or k is None:
+                        continue
+                    if nh[k][0][0] > old_mrd:
+                        # reachability distance between j and k decreased
+                        new_edges.add((j, k, -md))
+
+        candidate_edges = self._mst_edges
+        candidate_edges.extend((max(dist, -nh[i][0][0], -nh[j][0][0]),
+                                i, j, dist)
+                               for i, j, dist in new_edges)
         heapq.heapify(candidate_edges)
         
         # Kruskal's algorithm
