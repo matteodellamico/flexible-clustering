@@ -107,6 +107,10 @@ class FISHDBC:
         # data[i] and data[j], dist is the dissimilarity between them, and rd
         # is the reachability distance.
 
+        # (i, j) -> dist: the new candidates for the spanning tree
+        # reachability distance will be computed afterwards
+        self._new_edges = {}
+        
         # for each data[i], _neighbor_heaps[i] contains a heap of
         # (mdist, j) where the data[j] are the min_sample closest distances
         # to i and mdist = -d(data[i], data[j]). Since heapq doesn't
@@ -164,6 +168,7 @@ class FISHDBC:
         distance_cache = self._distance_cache
         min_samples = self.min_samples
         nh = self._neighbor_heaps
+        new_edges = self._new_edges
         
         idx = len(data)
         data.append(elem)
@@ -173,12 +178,11 @@ class FISHDBC:
         
         self._distance_cache.clear()
         self._hnsw_add(idx)
-        new_edges = set()  # (i, j, dist) triples
         
         for j, dist in distance_cache.items():
             mdist = -dist
             heapq.heappushpop(nh[idx], (mdist, j))
-            new_edges.add((idx, j, dist))
+            new_edges[idx, j] = dist
 
             # also update j's reachability distances
             nh_j = nh[j]
@@ -192,17 +196,28 @@ class FISHDBC:
                         continue
                     if nh[k][0][0] > old_mrd:
                         # reachability distance between j and k decreased
-                        new_edges.add((j, k, -md))
+                        new_edges[j, k] = -md
 
+        if len(new_edges) >= idx:
+            # update the MST when the candidate edges are more than
+            # the ones in the MST itself, to avoid O(n^2) behavior
+            self._update_mst()
+
+    def _update_mst(self):
+        """Update the minimum spanning tree."""
+        
         candidate_edges = self._mst_edges
+        new_edges = self._new_edges
+        nh = self._neighbor_heaps
+        
         candidate_edges.extend((max(dist, -nh[i][0][0], -nh[j][0][0]),
                                 i, j, dist)
-                               for i, j, dist in new_edges)
+                               for (i, j), dist in new_edges.items())
         heapq.heapify(candidate_edges)
         
         # Kruskal's algorithm
         self._mst_edges = mst_edges = []
-        n = len(data)
+        n = len(self.data)
         uf = UnionFind(n)
         n_edges = 0
         while n_edges < n - 1:
@@ -210,6 +225,7 @@ class FISHDBC:
             if uf.union(i, j):
                 mst_edges.append(edge)
                 n_edges += 1
+        new_edges.clear()
     
     def cluster(self, min_cluster_size=None, cluster_selection_method='eom',
                 allow_single_cluster=False,
@@ -218,6 +234,7 @@ class FISHDBC:
         
         if min_cluster_size is None:
             min_cluster_size = self.min_samples
+        self._update_mst()
         mst = np.array(self._mst_edges).astype(np.double)
         mst = np.concatenate((mst[:, 1:3], mst[:, 0].reshape(-1, 1)), axis=1)
         slt = hdbscan_.label(mst)
