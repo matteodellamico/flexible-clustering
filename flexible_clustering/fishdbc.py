@@ -206,8 +206,12 @@ class FISHDBC:
     def _update_mst(self):
         """Update the minimum spanning tree."""
         
-        candidate_edges = self._mst_edges
         new_edges = self._new_edges
+
+        if len(new_edges) == 0:
+            return
+        
+        candidate_edges = self._mst_edges
         nh = self._neighbor_heaps
         
         candidate_edges.extend((max(dist, -nh[i][0][0], -nh[j][0][0]),
