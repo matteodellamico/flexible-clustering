@@ -8,9 +8,9 @@ algorithms (FISHDBC, for the friends).
 Dependencies
 ------------
 
-Python 3
-hdbscan: https://github.com/scikit-learn-contrib/hdbscan
-scipy: https://www.scipy.org/
+* Python 3
+* hdbscan: https://github.com/scikit-learn-contrib/hdbscan
+* scipy: https://www.scipy.org/
 
 
 Installation
