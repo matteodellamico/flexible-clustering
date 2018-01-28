@@ -16,7 +16,7 @@ cdef class UnionFind:
         self.parents = np.arange(n, dtype=np.intp)
         self.ranks = np.zeros(n, dtype=np.intp)
 
-    cdef np.intp_t _find_root(self, np.intp_t x):
+    cdef inline np.intp_t _find_root(self, np.intp_t x):
         cdef np.intp_t i = x
         while self.parents[i] != i:
             self.parents[x] = i = self.parents[i]
