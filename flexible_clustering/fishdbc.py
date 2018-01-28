@@ -168,12 +168,7 @@ class FISHDBC:
                         # reachability distance between j and k decreased
                         new_edges[j, k] = -md
 
-        if len(new_edges) >= idx:
-            # update the MST when the candidate edges are more than
-            # the ones in the MST itself, to avoid O(n^2) behavior
-            self._update_mst()
-
-    def _update_mst(self):
+    def update_mst(self):
         """Update the minimum spanning tree."""
         
         new_edges = self._new_edges
@@ -208,7 +203,7 @@ class FISHDBC:
         
         if min_cluster_size is None:
             min_cluster_size = self.min_samples
-        self._update_mst()
+        self.update_mst()
         mst = np.array(self._mst_edges).astype(np.double)
         mst = np.concatenate((mst[:, 1:3], mst[:, 0].reshape(-1, 1)), axis=1)
         slt = hdbscan_.label(mst)
