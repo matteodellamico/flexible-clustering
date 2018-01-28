@@ -73,8 +73,7 @@ plt.figure(figsize=(9, 9))
 plt.gca().set_aspect('equal')
 
 for points in np.split(data, args.niters):
-    for point in points:
-        fishdbc.add(point)
+    fishdbc.update(points)
     nknown = len(fishdbc.data)
     _, _, _, ctree, _, _ = fishdbc.cluster()
     clusters = collections.defaultdict(set)

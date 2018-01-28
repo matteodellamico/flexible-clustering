@@ -130,6 +130,9 @@ class FISHDBC:
                              list_distance)
         self._hnsw_add = (the_hnsw.balanced_add if balanced_add
                           else the_hnsw.add)
+
+    def __len__(self):
+        return len(self.data)
     
     def add(self, elem):
         """Add elem to the data structure."""
@@ -167,6 +170,19 @@ class FISHDBC:
                     if nh[k][0][0] > old_mrd:
                         # reachability distance between j and k decreased
                         new_edges[j, k] = -md
+
+    def update(self, elems, mst_update_rate=100000):
+        """Add elements from elems and update the MST.
+
+        To avoid clogging memory, the MST is updated every
+        mst_update_rate elements are added.
+        """
+
+        for i, elem in enumerate(elems):
+            self.add(elem)
+            if i % mst_update_rate == 0:
+                self.update_mst()
+        self.update_mst()
 
     def update_mst(self):
         """Update the minimum spanning tree."""
