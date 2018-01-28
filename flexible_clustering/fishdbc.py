@@ -37,6 +37,7 @@ import scipy.sparse
 from hdbscan import hdbscan_
 
 from . import hnsw
+from .unionfind import UnionFind
 
 def hnsw_hdbscan(data, d, m=5, ef=200, m0=None, level_mult=None,
                  heuristic=True, balanced_add=True, **kwargs):
@@ -57,39 +58,6 @@ def hnsw_hdbscan(data, d, m=5, ef=200, m0=None, level_mult=None,
 
     return hdbscan.hdbscan(distance_matrix, metric='precomputed', **kwargs)
 
-class UnionFind:
-    """Union-find algorithm, with link-by-rank and path compression.
-    
-    See https://en.wikipedia.org/wiki/Disjoint-set_data_structure.
-    """
-    
-    def __init__(self, n):
-        """n is the number of elements."""
-        self.parents = np.arange(n)
-        self.ranks = np.zeros(n)
-
-    def find_root(self, x):
-        """Return a representative for x's set."""
-        i = x
-        parents = self.parents
-        while parents[i] != i:
-            parents[x] = i = parents[i]
-        return i
-    
-    def union(self, x, y):
-        """Returns True if x and y were not in the same set."""
-        parents, ranks = self.parents, self.ranks
-        root_x, root_y = self.find_root(x), self.find_root(y)
-        if root_x == root_y:
-            return False
-        rank_x, rank_y = ranks[root_x], ranks[root_y]
-        if rank_x <= rank_y:
-            if rank_x == rank_y:
-                ranks[root_x] = rank_y + 1
-            parents[root_x] = root_y
-        else:
-            parents[root_y] = root_x
-        return True
 
 class FISHDBC:
     """Flexible Incremental Scalable Hierarchical Density-Based Clustering."""

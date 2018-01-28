@@ -32,6 +32,7 @@
 
 # Always prefer setuptools over distutils
 from setuptools import setup, find_packages
+from Cython.Build import cythonize
 # To use a consistent encoding
 from codecs import open
 from os import path
@@ -131,4 +132,6 @@ setup(
 #            'sample=sample:main',
 #        ],
 #    },
+    
+    ext_modules = cythonize("flexible_clustering/unionfind.pyx"),
 )

@@ -9,6 +9,7 @@ Dependencies
 ------------
 
 * Python 3
+* Cython
 * hdbscan: https://github.com/scikit-learn-contrib/hdbscan
 * scipy: https://www.scipy.org/
 
