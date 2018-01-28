@@ -31,14 +31,16 @@
 import heapq
 
 import hdbscan
-from hdbscan import hdbscan_
 import numpy as np
 import scipy.sparse
+
+from hdbscan import hdbscan_
 
 from . import hnsw
 
 def hnsw_hdbscan(data, d, m=5, ef=200, m0=None, level_mult=None,
                  heuristic=True, balanced_add=True, **kwargs):
+    """Simple implementation for when you don't need incremental updates."""
 
     n = len(data)
     distance_matrix = scipy.sparse.lil_matrix((n, n))
