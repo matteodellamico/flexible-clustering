@@ -77,9 +77,9 @@ class FISHDBC:
         # data[i] and data[j], dist is the dissimilarity between them, and rd
         # is the reachability distance.
 
-        # (i, j) -> dist: the new candidates for the spanning tree
+        # [(i, j, dist)]: the new candidates for the spanning tree
         # reachability distance will be computed afterwards
-        self._new_edges = {}
+        self._new_edges = []
         
         # for each data[i], _neighbor_heaps[i] contains a heap of
         # (mdist, j) where the data[j] are the min_sample closest distances
@@ -155,7 +155,7 @@ class FISHDBC:
         for j, dist in distance_cache.items():
             mdist = -dist
             heapq.heappushpop(nh[idx], (mdist, j))
-            new_edges[idx, j] = dist
+            new_edges.append((j, idx, dist))
 
             # also update j's reachability distances
             nh_j = nh[j]
@@ -169,7 +169,7 @@ class FISHDBC:
                         continue
                     if nh[k][0][0] > old_mrd:
                         # reachability distance between j and k decreased
-                        new_edges[j, k] = -md
+                        new_edges.append((j, k, -md))
 
     def update(self, elems, mst_update_rate=100000):
         """Add elements from elems and update the MST.
@@ -197,7 +197,7 @@ class FISHDBC:
         
         candidate_edges.extend((max(dist, -nh[i][0][0], -nh[j][0][0]),
                                 i, j, dist)
-                               for (i, j), dist in new_edges.items())
+                               for i, j, dist in new_edges)
         heapq.heapify(candidate_edges)
         
         # Kruskal's algorithm
@@ -210,6 +210,7 @@ class FISHDBC:
             if uf.union(i, j):
                 mst_edges.append(edge)
                 n_edges += 1
+
         new_edges.clear()
     
     def cluster(self, min_cluster_size=None, cluster_selection_method='eom',
