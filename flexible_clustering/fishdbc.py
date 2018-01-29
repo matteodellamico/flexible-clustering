@@ -177,13 +177,14 @@ class FISHDBC:
         # Kruskal's algorithm
         self._mst_edges = mst_edges = []
         n = len(self.data)
+        needed_edges = n - 1
         uf = UnionFind(n)
-        n_edges = 0
-        while n_edges < n - 1:
+        while needed_edges:
             _, i, j, _ = edge = heapq.heappop(candidate_edges)
             if uf.union(i, j):
                 mst_edges.append(edge)
-                n_edges += 1
+                needed_edges -= 1
+
         new_edges.clear()
     
     def cluster(self, min_cluster_size=None, cluster_selection_method='eom',
