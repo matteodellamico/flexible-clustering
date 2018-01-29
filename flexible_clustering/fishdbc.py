@@ -63,7 +63,7 @@ class FISHDBC:
     """Flexible Incremental Scalable Hierarchical Density-Based Clustering."""
 
     def __init__(self, d, min_samples=5, m=5, ef=200, m0=None, level_mult=None,
-                 heuristic=True, balanced_add=True, list_distance=False):
+                 heuristic=True, balanced_add=True):
         """Setup the algorithm. The only mandatory parameter is d, the
         dissimilarity function. min_samples is passed to hdbscan, and
         the other parameters are all passed to HNSW."""
@@ -92,41 +92,15 @@ class FISHDBC:
         self._distance_cache = distance_cache = {}
 
         # decorated_d will cache the computed distances in distance_cache.
-        if not list_distance:  # d is defined to work on scalars
-            def decorated_d(i, j):
-                # assert i == len(data) - 1 # 1st argument is the new item
-                if j in distance_cache:
-                    return distance_cache[j]
-                distance_cache[j] = dist = d(data[i], data[j])
-                return dist
-        if list_distance: # d is defined to work on a scalar and a list
-            def decorated_d(i, js):
-                assert i == len(data) - 1 # 1st argument is the new item
-                known = []
-                unknown_j, unknown_items = [], []
-                for pos, j in enumerate(js):
-                    k = j in distance_cache
-                    known.append(k)
-                    if not k:
-                        unknown_j.append(j)
-                        unknown_items.append(k)
-                new_d = d(data[i], unknown_items)
-                for j, dist in zip(unknown_j, new_d):
-                    distance_cache[j] = dist
-                old_d = (distance_cache[j] for j, k in zip(js, known) if k)
-                new_d = iter(new_d)
-
-                res = []
-                for k in known:
-                    if k:
-                        res.append(next(old_d))
-                    else:
-                        res.append(next(new_d))
-                return res
+        def decorated_d(i, j):
+            # assert i == len(data) - 1 # 1st argument is the new item
+            if j in distance_cache:
+                return distance_cache[j]
+            distance_cache[j] = dist = d(data[i], data[j])
+            return dist
 
         # We create the HNSW
-        the_hnsw = hnsw.HNSW(decorated_d, m, ef, m0, level_mult, heuristic,
-                             list_distance)
+        the_hnsw = hnsw.HNSW(decorated_d, m, ef, m0, level_mult, heuristic)
         self._hnsw_add = (the_hnsw.balanced_add if balanced_add
                           else the_hnsw.add)
 

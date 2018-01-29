@@ -60,23 +60,14 @@ class HNSW(object):
     # where j is a neighbor of i and dist is distance
 
     def __init__(self, d, m=5, ef=200, m0=None, level_mult=None,
-                 heuristic=True, list_distance=False):
+                 heuristic=True):
         """d the dissimilarity function
 
         See other parameters in http://arxiv.org/pdf/1603.09320v2.pdf"""
 
         self.data = []
 
-        if list_distance:
-            def d1(x, y):
-                return d(x, [y])[0]
-            self.distance = d1
-            self.list_distance = d
-        else:
-            self.distance = d
-            def vd(x, ys):
-                return [d(x, y) for y in ys]
-            self.list_distance = vd
+        self.distance = d
         
         self._m = m
         self._ef = ef
@@ -219,7 +210,7 @@ class HNSW(object):
     def _search_graph_ef1(self, q, entry, dist, g):
         """Equivalent to _search_graph when ef=1."""
 
-        ld = self.list_distance
+        d = self.distance
         data = self.data
         
         best = entry
@@ -231,10 +222,11 @@ class HNSW(object):
             dist, c = heappop(candidates)
             if dist > best_dist:
                 break
-            edges = [e for e in g[c] if e not in visited]
-            visited.update(edges)
-            dists = ld(q, [data[e] for e in edges])
-            for e, dist in zip(edges, dists):
+            for e in g[c]:
+                if e in visited:
+                    continue
+                visited.add(e)
+                dist = d(q, data[e])
                 if dist < best_dist:
                     best = e
                     best_dist = dist
@@ -245,7 +237,7 @@ class HNSW(object):
 
     def _search_graph(self, q, ep, g, ef):
 
-        ld = self.list_distance
+        d = self.distance
         data = self.data
         
         candidates = [(-mdist, p) for mdist, p in ep]
@@ -259,10 +251,11 @@ class HNSW(object):
             if dist > ref:
                 break
 
-            edges = [e for e in g[c] if e not in visited]
-            visited.update(edges)
-            dists = ld(q, [data[e] for e in edges])
-            for e, dist in zip(edges, dists):
+            for e in g[c]:
+                if e in visited:
+                    continue
+                visited.add(e)
+                dist = d(q, data[e])
                 mdist = -dist
                 if len(ep) < ef:
                     heappush(candidates, (dist, e))
