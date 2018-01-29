@@ -94,12 +94,11 @@ class FISHDBC:
         # decorated_d will cache the computed distances in distance_cache.
         if not list_distance:  # d is defined to work on scalars
             def decorated_d(i, j):
-                assert i == len(data) - 1 # 1st argument is the new item
-                try:
+                # assert i == len(data) - 1 # 1st argument is the new item
+                if j in distance_cache:
                     return distance_cache[j]
-                except KeyError:
-                    distance_cache[j] = dist = d(data[i], data[j])
-                    return dist
+                distance_cache[j] = dist = d(data[i], data[j])
+                return dist
         if list_distance: # d is defined to work on a scalar and a list
             def decorated_d(i, js):
                 assert i == len(data) - 1 # 1st argument is the new item
@@ -155,7 +154,7 @@ class FISHDBC:
         for j, dist in distance_cache.items():
             mdist = -dist
             heapq.heappushpop(nh[idx], (mdist, j))
-            new_edges[idx, j] = dist
+            new_edges[j, idx] = dist
 
             # also update j's reachability distances
             nh_j = nh[j]
@@ -169,7 +168,8 @@ class FISHDBC:
                         continue
                     if nh[k][0][0] > old_mrd:
                         # reachability distance between j and k decreased
-                        new_edges[j, k] = -md
+                        key = (j, k) if j < k else (k, j)
+                        new_edges[key] = -md
 
     def update(self, elems, mst_update_rate=100000):
         """Add elements from elems and update the MST.
@@ -194,7 +194,7 @@ class FISHDBC:
         
         candidate_edges = self._mst_edges
         nh = self._neighbor_heaps
-        
+
         candidate_edges.extend((max(dist, -nh[i][0][0], -nh[j][0][0]),
                                 i, j, dist)
                                for (i, j), dist in new_edges.items())
