@@ -190,6 +190,9 @@ class HNSW(object):
         graphs = self._graphs
         point = self._enter_point
 
+        if ef is None:
+            ef = self._ef
+
         if point is None:
             raise ValueError("Empty graph")
         
