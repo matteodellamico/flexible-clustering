@@ -63,7 +63,7 @@ class FISHDBC:
     """Flexible Incremental Scalable Hierarchical Density-Based Clustering."""
 
     def __init__(self, d, min_samples=5, m=5, ef=200, m0=None, level_mult=None,
-                 heuristic=True, balanced_add=True, list_distance=False):
+                 heuristic=True, balanced_add=True, vectorized_distance=False):
         """Setup the algorithm. The only mandatory parameter is d, the
         dissimilarity function. min_samples is passed to hdbscan, and
         the other parameters are all passed to HNSW."""
@@ -92,14 +92,14 @@ class FISHDBC:
         self._distance_cache = distance_cache = {}
 
         # decorated_d will cache the computed distances in distance_cache.
-        if not list_distance:  # d is defined to work on scalars
+        if not vectorized_distance:  # d is defined to work on scalars
             def decorated_d(i, j):
                 # assert i == len(data) - 1 # 1st argument is the new item
                 if j in distance_cache:
                     return distance_cache[j]
                 distance_cache[j] = dist = d(data[i], data[j])
                 return dist
-        if list_distance: # d is defined to work on a scalar and a list
+        if vectorized_distance: # d is defined to work on a scalar and a list
             def decorated_d(i, js):
                 assert i == len(data) - 1 # 1st argument is the new item
                 known = []
@@ -126,7 +126,7 @@ class FISHDBC:
 
         # We create the HNSW
         the_hnsw = hnsw.HNSW(decorated_d, m, ef, m0, level_mult, heuristic,
-                             list_distance)
+                             vectorized_distance)
         self._hnsw_add = (the_hnsw.balanced_add if balanced_add
                           else the_hnsw.add)
 
