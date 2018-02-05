@@ -99,7 +99,7 @@ class FISHDBC:
                     return distance_cache[j]
                 distance_cache[j] = dist = d(data[i], data[j])
                 return dist
-        if vectorized_distance: # d is defined to work on a scalar and a list
+        else: # d is defined to work on a scalar and a list
             def decorated_d(i, js):
                 assert i == len(data) - 1 # 1st argument is the new item
                 known = []
