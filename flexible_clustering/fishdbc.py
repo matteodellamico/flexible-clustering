@@ -52,7 +52,7 @@ def hnsw_hdbscan(data, d, m=5, ef=200, m0=None, level_mult=None,
         return res
     
     the_hnsw = hnsw.HNSW(decorated_d, m, ef, m0, level_mult, heuristic)
-    add = the_hnsw.balanced_add if balanced_add else add
+    add = the_hnsw.balanced_add if balanced_add else the_hnsw.add
     for i in range(len(data)):
         add(i)
 
@@ -126,7 +126,7 @@ class FISHDBC:
 
         # We create the HNSW
         the_hnsw = hnsw.HNSW(decorated_d, m, ef, m0, level_mult, heuristic,
-                             vectorized_distance)
+                             vectorized)
         self._hnsw_add = (the_hnsw.balanced_add if balanced_add
                           else the_hnsw.add)
 
