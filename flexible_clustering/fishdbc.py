@@ -91,12 +91,16 @@ class FISHDBC:
         # caches the distances computed to the last data item inserted
         self._distance_cache = distance_cache = {}
 
+
+        self.cache_hits = self.cache_misses = 0
         # decorated_d will cache the computed distances in distance_cache.
         if not vectorized:  # d is defined to work on scalars
             def decorated_d(i, j):
                 # assert i == len(data) - 1 # 1st argument is the new item
                 if j in distance_cache:
+                    self.cache_hits += 1
                     return distance_cache[j]
+                self.cache_misses += 1
                 distance_cache[j] = dist = d(data[i], data[j])
                 return dist
         else: # d is defined to work on a scalar and a list
@@ -114,6 +118,9 @@ class FISHDBC:
                     for pos, j, dist in zip(unknown_pos, unknown_j,
                                             d(data[i], unknown_j)):
                         distance_cache[j] = res[pos] = dist
+                misses = len(unknown_j)
+                self.cache_misses += misses
+                self.cache_hits += len(js) - misses
                 return res
 
         # We create the HNSW
