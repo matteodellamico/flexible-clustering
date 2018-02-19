@@ -140,14 +140,15 @@ class FISHDBC:
         min_samples = self.min_samples
         nh = self._neighbor_heaps
         new_edges = self._new_edges
+
+        assert distance_cache == {}
         
         idx = len(data)
         data.append(elem)
         # let's start with min_samples values of infinity rather than
         # having to deal with heaps of less than min_samples values
         nh.append([(-np.infty, None)] * min_samples)
-        
-        self._distance_cache.clear()
+
         self._hnsw_add(idx)
         
         for j, dist in distance_cache.items():
@@ -169,6 +170,7 @@ class FISHDBC:
                         # reachability distance between j and k decreased
                         key = (j, k) if j < k else (k, j)
                         new_edges[key] = -md
+        distance_cache.clear()
 
     def update(self, elems, mst_update_rate=100000):
         """Add elements from elems and update the MST.
