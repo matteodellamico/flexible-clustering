@@ -218,7 +218,7 @@ class HNSW(object):
         if k is not None:
             ep = nlargest(k, ep)
         else:
-            ep.sort()
+            ep.sort(reverse=True)
 
         return [(idx, -md) for md, idx in ep]
 
@@ -261,8 +261,7 @@ class HNSW(object):
         while candidates:
             dist, c = heappop(candidates)
             mref = ep[0][0]
-            ref = -mref
-            if dist > ref:
+            if dist > -mref:
                 break
 
             edges = [e for e in g[c] if e not in visited]
