@@ -101,27 +101,19 @@ class FISHDBC:
                 return dist
         else: # d is defined to work on a scalar and a list
             def decorated_d(i, js):
-                assert i == len(data) - 1 # 1st argument is the new item
-                known = []
-                unknown_j, unknown_items = [], []
+                # assert i == len(data) - 1 # 1st argument is the new item
+                res = [None] * len(js)
+                unknown_j, unknown_pos = [], []
                 for pos, j in enumerate(js):
-                    k = j in distance_cache
-                    known.append(k)
-                    if not k:
-                        unknown_j.append(j)
-                        unknown_items.append(k)
-                new_d = d(data[i], unknown_items)
-                for j, dist in zip(unknown_j, new_d):
-                    distance_cache[j] = dist
-                old_d = (distance_cache[j] for j, k in zip(js, known) if k)
-                new_d = iter(new_d)
-
-                res = []
-                for k in known:
-                    if k:
-                        res.append(next(old_d))
+                    if j in distance_cache:
+                        res[pos] = distance_cache[j]
                     else:
-                        res.append(next(new_d))
+                        unknown_j.append(j)
+                        unknown_pos.append(pos)
+                if len(unknown_j) > 0:
+                    for pos, j, dist in zip(unknown_pos, unknown_j,
+                                            d(data[i], unknown_j)):
+                        distance_cache[j] = res[pos] = dist
                 return res
 
         # We create the HNSW
