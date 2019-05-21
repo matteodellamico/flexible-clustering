@@ -171,7 +171,7 @@ class FISHDBC:
                     if nh[k][0][0] > old_mrd:
                         # reachability distance between j and k decreased
                         key = (j, k) if j < k else (k, j)
-                        new_edges[key] = -md
+                        new_edges[key] = -min(md, new_mrd)
         distance_cache.clear()
 
     def update(self, elems, mst_update_rate=100000):
