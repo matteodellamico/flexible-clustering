@@ -5,6 +5,8 @@ A project for scalable hierachical clustering, thanks to a Flexible,
 Incremental, Scalable, Hierarchical Density-Based Clustering
 algorithms (FISHDBC, for the friends).
 
+Please see the paper at https://arxiv.org/abs/1910.07283.
+
 Dependencies
 ------------
 
