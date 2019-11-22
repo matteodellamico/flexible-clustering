@@ -42,6 +42,8 @@ dissimilarity function between arbitrary data elements::
     # new clustering according to the newly available data
     labels, probs, stabilities, condensed_tree, slt, mst = clusterer.cluster()
 
+Make sure to run everything from *outside* the source directory, to
+avoid confusing Python path.
 
 Demo/Example
 ------------
