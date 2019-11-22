@@ -37,6 +37,8 @@ from Cython.Build import cythonize
 from codecs import open
 from os import path
 
+import numpy
+
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
@@ -134,4 +136,5 @@ setup(
 #    },
     
     ext_modules = cythonize("flexible_clustering/unionfind.pyx"),
+    include_dirs=[numpy.get_include()],
 )
