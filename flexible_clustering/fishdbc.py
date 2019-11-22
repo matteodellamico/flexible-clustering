@@ -141,13 +141,15 @@ class FISHDBC:
         nh = self._neighbor_heaps
         new_edges = self._new_edges
 
+        minus_infty = -np.infty
+
         assert distance_cache == {}
         
         idx = len(data)
         data.append(elem)
         # let's start with min_samples values of infinity rather than
         # having to deal with heaps of less than min_samples values
-        nh.append([(-np.infty, None)] * min_samples)
+        nh.append([(minus_infty, minus_infty)] * min_samples)
 
         self._hnsw_add(idx)
         
@@ -164,12 +166,12 @@ class FISHDBC:
                 # i is a new close neighbor for j and j's reachability
                 # distance changed
                 for md, k in nh_j:
-                    if k == idx or k is None:
+                    if k == idx or k == minus_infty:
                         continue
                     if nh[k][0][0] > old_mrd:
                         # reachability distance between j and k decreased
                         key = (j, k) if j < k else (k, j)
-                        new_edges[key] = -md
+                        new_edges[key] = -min(md, new_mrd)
         distance_cache.clear()
 
     def update(self, elems, mst_update_rate=100000):
