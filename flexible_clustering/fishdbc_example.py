@@ -84,13 +84,13 @@ for points in np.split(data, args.niters):
             assert len(clusters[child]) == child_size
             clusters[parent].update(clusters[child])
     clusters = sorted(clusters.items())
-    xknown, yknown = x[:nknown], y[:nknown]
-    plt.scatter(xknown, yknown,
-                c=['rgbcmyk'[l % 7] for l in labels], linewidth=0)
+    xknown, yknown, labels_known = x[:nknown], y[:nknown], labels[:nknown]
+    color = ['rgbcmyk'[l % 7] for l in labels_known]
+    plt.scatter(xknown, yknown, c=color, linewidth=0)
     plt.show(block=False)
     for _, cluster in clusters:
         plt.waitforbuttonpress()
         plt.gca().clear()
-        c = ['kr'[i in cluster] for i in range(args.nitems)]
-        plt.scatter(xknown, yknown, c=c, linewidth=0)
+        color = ['kr'[i in cluster] for i in range(nknown)]
+        plt.scatter(xknown, yknown, c=color, linewidth=0)
         plt.draw()
