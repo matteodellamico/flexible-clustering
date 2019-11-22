@@ -39,7 +39,7 @@ from hdbscan import hdbscan_
 from . import hnsw
 from .unionfind import UnionFind
 
-def hnsw_hdbscan(data, d, m=5, ef=200, m0=None, level_mult=None,
+def hnsw_hdbscan(data, d, m=5, ef=50, m0=None, level_mult=None,
                  heuristic=True, balanced_add=True, **kwargs):
     """Simple implementation for when you don't need incremental updates."""
 
@@ -62,7 +62,7 @@ def hnsw_hdbscan(data, d, m=5, ef=200, m0=None, level_mult=None,
 class FISHDBC:
     """Flexible Incremental Scalable Hierarchical Density-Based Clustering."""
 
-    def __init__(self, d, min_samples=5, m=5, ef=200, m0=None, level_mult=None,
+    def __init__(self, d, min_samples=5, m=5, ef=50, m0=None, level_mult=None,
                  heuristic=True, balanced_add=True, vectorized=False):
         """Setup the algorithm. The only mandatory parameter is d, the
         dissimilarity function. min_samples is passed to hdbscan, and
