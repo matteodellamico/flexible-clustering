@@ -238,6 +238,8 @@ class HNSW(object):
             if dist > best_dist:
                 break
             edges = [e for e in g[c] if e not in visited]
+            if not edges:
+                continue
             visited.update(edges)
             dists = vd(q, [data[e] for e in edges])
             for e, dist in zip(edges, dists):
@@ -265,6 +267,8 @@ class HNSW(object):
                 break
 
             edges = [e for e in g[c] if e not in visited]
+            if not edges:
+                continue
             visited.update(edges)
             dists = vd(q, [data[e] for e in edges])
             for e, dist in zip(edges, dists):

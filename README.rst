@@ -56,7 +56,7 @@ matplotlib to be run).
 Want More Info?
 ---------------
 
-Send me an email at matteo_dellamico@symantec.com. I'll improve the
+Send me an email at `della@linux.it`. I'll improve the
 docs as and if people use this.
     
 Author
