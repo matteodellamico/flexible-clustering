@@ -5,6 +5,9 @@ A project for scalable hierachical clustering, thanks to a Flexible,
 Incremental, Scalable, Hierarchical Density-Based Clustering
 algorithms (FISHDBC, for the friends).
 
+This package lets you use an arbitrary dissimilarity function you write (or reuse from somebody else's work!) to cluster
+your data.
+
 Please see the paper at https://arxiv.org/abs/1910.07283
 
 Dependencies
