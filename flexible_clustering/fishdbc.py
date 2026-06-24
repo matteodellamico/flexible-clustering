@@ -141,7 +141,7 @@ class FISHDBC:
         nh = self._neighbor_heaps
         new_edges = self._new_edges
 
-        minus_infty = -np.infty
+        minus_infty = -np.inf
 
         assert distance_cache == {}
         
