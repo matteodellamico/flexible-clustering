@@ -222,7 +222,7 @@ class FISHDBC:
         """Returns: (labels, probs, stabilities, condensed_tree, slt, mst)."""
         
         if min_cluster_size is None:
-            min_cluster_size = self.min_samples
+            min_cluster_size = max(2, self.min_samples)
         self.update_mst()
         mst = np.array(self._mst_edges).astype(np.double)
         mst = np.concatenate((mst[:, 1:3], mst[:, 0].reshape(-1, 1)), axis=1)
