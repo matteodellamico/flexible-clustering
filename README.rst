@@ -1,3 +1,8 @@
+This project is now obsolete
+============================
+
+Head over to https://gitlab.com/bobtables/fishdbc for a new implementation of the same idea that is orders of magnitude faster.
+
 Flexible clustering
 ===================
 
